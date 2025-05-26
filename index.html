@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Life Adventurer - Portal</title>
-    <link rel="icon" href="./images/lifeadventurer_rounded_logo.png" />
     <style>
+      /* Base styles for light mode */
       body {
         font-family:
           -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
@@ -22,6 +22,9 @@
         min-height: 100vh;
         padding: 20px;
         box-sizing: border-box;
+        transition:
+          background-color 0.3s ease,
+          color 0.3s ease; /* Smooth transition for theme change */
       }
 
       .container {
@@ -32,18 +35,24 @@
         max-width: 600px;
         width: 100%;
         text-align: center;
+        position: relative; /* For positioning the theme toggle button */
+        transition:
+          background-color 0.3s ease,
+          box-shadow 0.3s ease;
       }
 
       h1 {
         font-size: 2.5em;
         margin-bottom: 10px;
         color: #343a40;
+        transition: color 0.3s ease;
       }
 
       p.subtitle {
         font-size: 1.1em;
         color: #6c757d;
         margin-bottom: 30px;
+        transition: color 0.3s ease;
       }
 
       ul.links {
@@ -80,24 +89,96 @@
         margin-top: 30px;
         font-size: 0.9em;
         color: #6c757d;
+        transition: color 0.3s ease;
       }
 
+      /* Theme toggle button styles */
+      .theme-toggle-button {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background-color: #e9ecef;
+        color: #495057;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.9em;
+        transition:
+          background-color 0.2s ease,
+          color 0.2s ease;
+      }
+
+      .theme-toggle-button:hover {
+        background-color: #ced4da;
+      }
+
+      /* Dark mode styles */
+      body.dark-mode {
+        background-color: #121212; /* Darker background for body */
+        color: #e0e0e0; /* Lighter text for body */
+      }
+
+      body.dark-mode .container {
+        background-color: #1e1e1e; /* Dark background for container */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Darker shadow */
+      }
+
+      body.dark-mode h1 {
+        color: #f8f9fa; /* Light color for heading */
+      }
+
+      body.dark-mode p.subtitle {
+        color: #adb5bd; /* Lighter grey for subtitle */
+      }
+
+      body.dark-mode ul.links a {
+        background-color: #343a40; /* Darker background for links */
+        color: #80bdff; /* Lighter blue for link text */
+      }
+
+      body.dark-mode ul.links a:hover,
+      body.dark-mode ul.links a:focus {
+        background-color: #495057; /* Slightly lighter dark for link hover */
+        color: #ffffff;
+      }
+
+      body.dark-mode .footer {
+        color: #adb5bd; /* Lighter grey for footer */
+      }
+
+      body.dark-mode .theme-toggle-button {
+        background-color: #343a40;
+        color: #e0e0e0;
+      }
+
+      body.dark-mode .theme-toggle-button:hover {
+        background-color: #495057;
+      }
+
+      /* Responsive adjustments */
       @media (max-width: 600px) {
         h1 {
           font-size: 2em;
         }
         .container {
-          padding: 20px 25px;
+          padding: 30px 25px; /* Adjusted padding for toggle button space */
         }
         ul.links a {
           padding: 12px 15px;
           font-size: 1em;
+        }
+        .theme-toggle-button {
+          top: 10px;
+          right: 10px;
+          padding: 6px 10px;
         }
       }
     </style>
   </head>
   <body>
     <div class="container">
+      <button class="theme-toggle-button" id="themeToggle">Toggle Theme</button>
       <h1>Life Adventurer</h1>
       <p class="subtitle">
         Welcome to my personal portal. Find my projects and resources below.
@@ -113,7 +194,7 @@
           >
         </li>
         <li>
-          <a href="/wiki" target="_blank" rel="noopener noreferrer">My Wiki</a>
+          <a href="/wiki/" target="_blank" rel="noopener noreferrer">My Wiki</a>
         </li>
         <li>
           <a
@@ -134,8 +215,52 @@
     </div>
 
     <script>
+      // Set current year in footer
       document.getElementById("currentYear").textContent =
         new Date().getFullYear();
+
+      // Theme toggle functionality
+      const themeToggle = document.getElementById("themeToggle");
+      const body = document.body;
+      const prefersDarkScheme = window.matchMedia(
+        "(prefers-color-scheme: dark)",
+      );
+
+      // Function to apply theme
+      function applyTheme(theme) {
+        if (theme === "dark") {
+          body.classList.add("dark-mode");
+          themeToggle.textContent = "☀️ Light";
+        } else {
+          body.classList.remove("dark-mode");
+          themeToggle.textContent = "🌙 Dark";
+        }
+      }
+
+      // Function to toggle theme and save preference
+      function toggleTheme() {
+        let newTheme = body.classList.contains("dark-mode") ? "light" : "dark";
+        applyTheme(newTheme);
+        localStorage.setItem("theme", newTheme);
+      }
+
+      // Load saved theme or system preference
+      const savedTheme = localStorage.getItem("theme");
+      if (savedTheme) {
+        applyTheme(savedTheme);
+      } else {
+        applyTheme(prefersDarkScheme.matches ? "dark" : "light");
+      }
+
+      // Event listener for the toggle button
+      themeToggle.addEventListener("click", toggleTheme);
+
+      // Listen for changes in system preference (if no manual preference is set)
+      prefersDarkScheme.addEventListener("change", (e) => {
+        if (!localStorage.getItem("theme")) {
+          applyTheme(e.matches ? "dark" : "light");
+        }
+      });
     </script>
   </body>
 </html>
