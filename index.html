@@ -259,7 +259,7 @@
         } else {
           body.classList.remove("dark-mode");
           themeToggle.textContent = "🌙 Dark";
-        } // Notify hexagon script about theme change
+        }
         if (
           window.hexagonApp &&
           typeof window.hexagonApp.updateTheme === "function"
@@ -287,36 +287,40 @@
           applyTheme(e.matches ? "dark" : "light");
         }
       });
-      // --- HEXAGON BACKGROUND SCRIPT ---
 
+      // --- HEXAGON BACKGROUND SCRIPT ---
       window.hexagonApp = (function () {
         const canvas = document.getElementById("hexagon-canvas");
         const ctx = canvas.getContext("2d");
 
         let width, height;
-        const hexSize = 30;
+        const hexSize = 30; // Size of the hexagon (radius)
         const hexWidth = Math.sqrt(3) * hexSize;
         const hexHeight = 2 * hexSize;
-        const animationSpeed = 0.08;
-        const fadeDelay = 800;
+        const animationSpeed = 0.08; // How fast the color changes (0 to 1)
+        const fadeDelay = 800; // ms to wait before fading back
 
         let hexagons = [];
-        let mouseX = -1000,
-          mouseY = -1000;
-        let lastHoveredHex = null;
+        let lastHoveredHex = null; // Track the previously hovered hexagon
 
-        let baseHexColor = "#e0e0e0";
-        let hoverHexColor = "#a0c4ff";
+        // Theme-dependent colors
+        let baseHexColor = "#e0e0e0"; // Light mode default
+        let hoverHexColor = "#a0c4ff"; // Light mode hover
         let currentTheme = "light";
 
         // Virtual Mouse specific variables
-        let virtualMouseX = -1;
-        let virtualMouseY = -1;
+        let virtualMouseX; // Will be initialized to center
+        let virtualMouseY; // Will be initialized to center
         let virtualMouseSpeed = 2; // Pixels per frame
-        let virtualMouseDirectionX = 1; // 1 or -1
-        let virtualMouseDirectionY = 1; // 1 or -1
-        let virtualMouseUpdateInterval = 50; // How often to change direction (in animation frames)
-        let virtualMouseUpdateCounter = 0;
+        let virtualMouseDirectionX = Math.random() > 0.5 ? 1 : -1; // Random initial direction
+        let virtualMouseDirectionY = Math.random() > 0.5 ? 1 : -1; // Random initial direction
+        const virtualMouseChangeDirectionInterval = 120; // How often to change direction (in animation frames, ~2 seconds at 60fps)
+        let virtualMouseFrameCounter = 0;
+
+        // A flag to know if the real mouse has moved recently
+        let realMouseActive = false;
+        let realMouseInactivityTimer;
+        const realMouseInactivityThreshold = 3000; // ms before virtual mouse takes over
 
         function hexToRgb(hex) {
           var r = parseInt(hex.slice(1, 3), 16),
@@ -337,9 +341,10 @@
           hexagons.forEach((hex) => {
             hex.baseColorRgb = hexToRgb(baseHexColor);
             hex.hoverColorRgb = hexToRgb(hoverHexColor);
+            // Ensure current color matches base color immediately on theme change
             hex.color = baseHexColor;
-            hex.targetColorRgb = hex.toBaseColor(); // Set target back to base immediately
-            hex.animationProgress = 0; // Ensure it animates from base
+            hex.targetColorRgb = hex.baseColorRgb; // Reset target
+            hex.animationProgress = 0; // Start animation from base
           });
         }
 
@@ -352,17 +357,17 @@
             this.baseColorRgb = hexToRgb(baseHexColor);
             this.hoverColorRgb = hexToRgb(hoverHexColor);
 
-            this.color = baseHexColor;
-            this.targetColorRgb = this.baseColorRgb;
-            this.animationProgress = 0; // 0 = base, 1 = hover
-            this.lastInteractionTime = 0;
+            this.color = baseHexColor; // Current rendered color (hex string)
+            this.targetColorRgb = this.baseColorRgb; // Target color for animation (RGB object)
+            this.animationProgress = 0; // 0 = fully base, 1 = fully hover
+            this.lastInteractionTime = 0; // To handle fade delay
           }
 
           draw() {
-            ctx.fillStyle = this.color;
+            ctx.fillStyle = this.color; // Use the interpolated color
             ctx.beginPath();
             for (let i = 0; i < 6; i++) {
-              const angle = (Math.PI / 3) * i + Math.PI / 6;
+              const angle = (Math.PI / 3) * i + Math.PI / 6; // Rotated for flat top
               const pointX = this.x + hexSize * Math.cos(angle);
               const pointY = this.y + hexSize * Math.sin(angle);
               if (i === 0) ctx.moveTo(pointX, pointY);
@@ -375,14 +380,14 @@
           update() {
             const now = Date.now();
 
-            // If currently aiming for hover color
+            // If currently aiming for hover color, increase progress
             if (this.targetColorRgb === this.hoverColorRgb) {
               this.animationProgress = Math.min(
                 1,
                 this.animationProgress + animationSpeed,
               );
             } else {
-              // If currently aiming for base color
+              // If aiming for base color, decrease progress after a delay
               if (now - this.lastInteractionTime > fadeDelay) {
                 this.animationProgress = Math.max(
                   0,
@@ -391,8 +396,7 @@
               }
             }
 
-            // Interpolate color
-            const currentRgb = hexToRgb(this.color); // Get current rendered RGB
+            // Interpolate color from base to hover (or vice-versa) based on progress
             const startRgb = this.baseColorRgb;
             const endRgb = this.hoverColorRgb;
 
@@ -408,7 +412,9 @@
             this.color = `rgb(${r},${g},${b})`;
           }
 
+          // Optimized hit test: Check bounding box first, then actual hexagon
           isMouseOver(mx, my) {
+            // Bounding box quick check
             if (
               mx < this.x - hexWidth / 2 ||
               mx > this.x + hexWidth / 2 ||
@@ -417,6 +423,7 @@
             ) {
               return false;
             }
+            // More accurate hexagon check
             const dx = Math.abs(mx - this.x);
             const dy = Math.abs(my - this.y);
             if (dx > hexWidth / 2 || dy > hexHeight / 2) return false;
@@ -435,15 +442,10 @@
               this.targetColorRgb = this.baseColorRgb;
             }
           }
-
-          toBaseColor() {
-            // Helper to directly set target to base
-            return this.baseColorRgb;
-          }
         }
 
         function initHexagons() {
-          hexagons = [];
+          hexagons = []; // Add padding to avoid gaps at edges
           const paddingX = hexWidth;
           const paddingY = hexHeight;
 
@@ -452,6 +454,7 @@
           const startY = -paddingY;
           const endY = height + paddingY;
 
+          // Offset rows for tessellation (odd-r offset)
           for (let r = 0; ; r++) {
             const y = r * hexHeight * 0.75;
             if (y - hexHeight > endY) break;
@@ -470,30 +473,31 @@
           height = window.innerHeight;
           canvas.width = width;
           canvas.height = height;
-          initHexagons();
-          updateThemeColors(currentTheme);
+          initHexagons(); // Re-initialize hexagons on resize
+          updateThemeColors(currentTheme); // Apply current theme colors
+          // Re-center virtual mouse on resize
+          virtualMouseX = width / 2;
+          virtualMouseY = height / 2;
         }
 
-        // Centralized function to handle mouse/virtual mouse position updates
-        function handlePointerUpdate(x, y) {
-          mouseX = x;
-          mouseY = y;
-
+        // Centralized function to handle pointer position updates
+        function updateHoveredHexagon(x, y) {
           let currentHoveredHex = null;
           for (let i = 0; i < hexagons.length; i++) {
-            if (hexagons[i].isMouseOver(mouseX, mouseY)) {
+            if (hexagons[i].isMouseOver(x, y)) {
               currentHoveredHex = hexagons[i];
-              break;
+              break; // Found it, no need to check others
             }
           }
 
           if (currentHoveredHex && currentHoveredHex !== lastHoveredHex) {
             if (lastHoveredHex) {
-              lastHoveredHex.setHover(false);
+              lastHoveredHex.setHover(false); // Tell the previous one to fade out
             }
-            currentHoveredHex.setHover(true);
+            currentHoveredHex.setHover(true); // Tell the new one to highlight
             lastHoveredHex = currentHoveredHex;
           } else if (!currentHoveredHex && lastHoveredHex) {
+            // Mouse left the last hovered hexagon
             lastHoveredHex.setHover(false);
             lastHoveredHex = null;
           }
@@ -502,40 +506,36 @@
         function animate() {
           ctx.clearRect(0, 0, width, height);
 
-          // Update virtual mouse position
-          virtualMouseUpdateCounter++;
-          if (virtualMouseUpdateCounter >= virtualMouseUpdateInterval) {
-            virtualMouseDirectionX = Math.random() > 0.5 ? 1 : -1;
-            virtualMouseDirectionY = Math.random() > 0.5 ? 1 : -1;
-            virtualMouseUpdateCounter = 0;
-          }
+          if (!realMouseActive) {
+            // Only update virtual mouse if real mouse is inactive
+            virtualMouseFrameCounter++;
+            if (
+              virtualMouseFrameCounter >= virtualMouseChangeDirectionInterval
+            ) {
+              virtualMouseDirectionX = Math.random() > 0.5 ? 1 : -1;
+              virtualMouseDirectionY = Math.random() > 0.5 ? 1 : -1;
+              virtualMouseFrameCounter = 0;
+            }
 
-          // Move virtual mouse
-          virtualMouseX += virtualMouseSpeed * virtualMouseDirectionX;
-          virtualMouseY += virtualMouseSpeed * virtualMouseDirectionY;
+            // Move virtual mouse
+            virtualMouseX += virtualMouseSpeed * virtualMouseDirectionX;
+            virtualMouseY += virtualMouseSpeed * virtualMouseDirectionY;
 
-          // Boundary checks for virtual mouse
-          if (virtualMouseX < 0 || virtualMouseX > width) {
-            virtualMouseDirectionX *= -1;
-            virtualMouseX = Math.max(0, Math.min(width, virtualMouseX)); // Clamp within bounds
-          }
-          if (virtualMouseY < 0 || virtualMouseY > height) {
-            virtualMouseDirectionY *= -1;
-            virtualMouseY = Math.max(0, Math.min(height, virtualMouseY)); // Clamp within bounds
-          }
+            // Boundary checks for virtual mouse
+            if (virtualMouseX < 0 || virtualMouseX > width) {
+              virtualMouseDirectionX *= -1;
+              virtualMouseX = Math.max(0, Math.min(width, virtualMouseX)); // Clamp within bounds
+            }
+            if (virtualMouseY < 0 || virtualMouseY > height) {
+              virtualMouseDirectionY *= -1;
+              virtualMouseY = Math.max(0, Math.min(height, virtualMouseY)); // Clamp within bounds
+            }
 
-          // Use the virtual mouse position for animation if no real mouse movement
-          if (document.activeElement !== document.body) {
-            // Check if user is interacting with form elements etc.
-            handlePointerUpdate(virtualMouseX, virtualMouseY);
-          } else {
-            // Only use real mouse if it's currently moving (or very recently moved)
-            // You might want a timer here to switch between real/virtual mouse
-            // For simplicity, I'm letting real mouse override immediately.
+            updateHoveredHexagon(virtualMouseX, virtualMouseY);
           }
 
           hexagons.forEach((hex) => {
-            hex.update();
+            hex.update(); // Update color/animation state
             hex.draw();
           });
 
@@ -544,28 +544,31 @@
 
         window.addEventListener("resize", resizeCanvas);
 
-        // Modify the mousemove listener: it now just calls the centralized handler
         document.addEventListener("mousemove", (e) => {
-          // When real mouse moves, override virtual mouse position
-          virtualMouseX = e.clientX;
-          virtualMouseY = e.clientY;
-          handlePointerUpdate(e.clientX, e.clientY);
+          // Reset inactivity timer and set real mouse as active
+          clearTimeout(realMouseInactivityTimer);
+          realMouseActive = true;
+          updateHoveredHexagon(e.clientX, e.clientY);
+
+          // Set a timeout to switch back to virtual mouse if no movement occurs
+          realMouseInactivityTimer = setTimeout(() => {
+            realMouseActive = false;
+            // When switching back, set virtual mouse to current real mouse position
+            virtualMouseX = e.clientX;
+            virtualMouseY = e.clientY;
+          }, realMouseInactivityThreshold);
         });
 
+        // Initialize on load
         const initialTheme =
           localStorage.getItem("theme") ||
           (prefersDarkScheme.matches ? "dark" : "light");
-        resizeCanvas();
-        updateThemeColors(initialTheme);
-
-        // Initialize virtual mouse position
-        virtualMouseX = width / 2;
-        virtualMouseY = height / 2;
-
-        animate();
+        resizeCanvas(); // This calls initHexagons and sets initial colors and centers virtual mouse
+        updateThemeColors(initialTheme); // Ensure colors are set immediately after init
+        animate(); // Start the animation loop immediately
 
         return {
-          updateTheme: updateThemeColors,
+          updateTheme: updateThemeColors, // Expose function to update theme colors
         };
       })();
     </script>
