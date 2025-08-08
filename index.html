@@ -31,6 +31,16 @@
           background-color 0.3s ease,
           color 0.3s ease;
         overflow: hidden; /* Hide scrollbars if canvas is slightly larger */
+        /* Theming tokens */
+        --container-bg: rgba(255, 255, 255, 0.7);
+        --container-border: rgba(0, 0, 0, 0.08);
+        --heading-gradient: linear-gradient(90deg, #212529, #0d6efd);
+        --link-bg: rgba(233, 236, 239, 0.7);
+        --link-border: rgba(13, 110, 253, 0.15);
+        --link-color: #0d6efd;
+        --link-hover-bg: rgba(13, 110, 253, 0.9);
+        --link-hover-color: #ffffff;
+        --shadow-color: rgba(0, 0, 0, 0.12);
       }
 
       #hexagon-canvas {
@@ -43,15 +53,11 @@
       }
 
       .container {
-        background-color: rgba(
-          255,
-          255,
-          255,
-          0.9
-        ); /* Slightly transparent white */
+        background-color: var(--container-bg);
         padding: 30px 40px;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        border-radius: 16px;
+        border: 1px solid var(--container-border);
+        box-shadow: 0 12px 30px var(--shadow-color);
         max-width: 600px;
         width: 100%;
         text-align: center;
@@ -59,13 +65,38 @@
         z-index: 1; /* Above canvas */
         transition:
           background-color 0.3s ease,
-          box-shadow 0.3s ease;
+          box-shadow 0.3s ease,
+          border-color 0.3s ease;
+        -webkit-backdrop-filter: blur(10px) saturate(140%);
+        backdrop-filter: blur(10px) saturate(140%);
+      }
+
+      .avatar {
+        width: 96px;
+        height: 96px;
+        margin: 10px auto 14px;
+        border-radius: 50%;
+        padding: 3px;
+        background: linear-gradient(135deg, #0d6efd, #6f42c1, #20c997);
+        box-shadow: 0 8px 20px var(--shadow-color);
+      }
+
+      .avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+        display: block;
       }
 
       h1 {
         font-size: 2.5em;
         margin-bottom: 10px;
         color: #343a40;
+        background: var(--heading-gradient);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
         transition: color 0.3s ease;
       }
 
@@ -87,23 +118,54 @@
       }
 
       ul.links a {
-        display: block;
-        padding: 15px 20px;
-        background-color: #e9ecef;
-        color: #007bff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 16px;
+        background-color: var(--link-bg);
+        color: var(--link-color);
         text-decoration: none;
-        border-radius: 5px;
-        font-size: 1.1em;
+        border-radius: 12px;
+        border: 1px solid var(--link-border);
+        font-size: 1.05em;
         transition:
           background-color 0.2s ease-in-out,
-          color 0.2s ease-in-out;
+          color 0.2s ease-in-out,
+          transform 0.15s ease,
+          box-shadow 0.2s ease-in-out,
+          border-color 0.2s ease-in-out;
+        box-shadow: 0 4px 10px var(--shadow-color);
       }
 
       ul.links a:hover,
       ul.links a:focus {
-        background-color: #007bff;
-        color: #ffffff;
+        background-color: var(--link-hover-bg);
+        color: var(--link-hover-color);
         outline: none;
+        transform: translateY(-1px);
+        box-shadow: 0 8px 18px var(--shadow-color);
+      }
+
+      ul.links a .link-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      ul.links a svg {
+        width: 20px;
+        height: 20px;
+        flex: 0 0 20px;
+      }
+
+      ul.links a .link-arrow {
+        transition: transform 0.2s ease;
+      }
+
+      ul.links a:hover .link-arrow,
+      ul.links a:focus .link-arrow {
+        transform: translateX(2px) translateY(-2px) rotate(10deg);
       }
 
       .footer {
@@ -120,25 +182,40 @@
         background-color: #e9ecef;
         color: #495057;
         border: 1px solid #ced4da;
-        padding: 8px 12px;
-        border-radius: 5px;
+        padding: 10px;
+        border-radius: 999px;
         cursor: pointer;
-        font-size: 0.9em;
+        font-size: 0.95em;
         z-index: 2; /* Above container's content if needed */
         transition:
           background-color 0.2s ease,
           color 0.2s ease,
-          border-color 0.2s ease;
+          border-color 0.2s ease,
+          transform 0.15s ease;
+        box-shadow: 0 6px 14px var(--shadow-color);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
       }
 
       .theme-toggle-button:hover {
         background-color: #ced4da;
+        transform: translateY(-1px);
       }
 
       /* Dark mode styles */
       body.dark-mode {
         background-color: #121212;
         color: #e0e0e0;
+        --container-bg: rgba(30, 30, 30, 0.6);
+        --container-border: rgba(255, 255, 255, 0.06);
+        --heading-gradient: linear-gradient(90deg, #e9ecef, #74c0fc);
+        --link-bg: rgba(52, 58, 64, 0.7);
+        --link-border: rgba(128, 189, 255, 0.18);
+        --link-color: #80bdff;
+        --link-hover-bg: rgba(73, 80, 87, 0.95);
+        --link-hover-color: #ffffff;
+        --shadow-color: rgba(0, 0, 0, 0.45);
       }
 
       body.dark-mode .container {
@@ -146,17 +223,16 @@
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
       }
 
-      body.dark-mode h1 {
-        color: #f8f9fa;
-      }
+      
 
       body.dark-mode p.subtitle {
         color: #adb5bd;
       }
 
       body.dark-mode ul.links a {
-        background-color: #343a40;
-        color: #80bdff;
+        background-color: var(--link-bg);
+        color: var(--link-color);
+        border-color: var(--link-border);
       }
 
       body.dark-mode ul.links a:hover,
@@ -188,13 +264,57 @@
           padding: 30px 25px;
         }
         ul.links a {
-          padding: 12px 15px;
+          padding: 12px 14px;
           font-size: 1em;
         }
         .theme-toggle-button {
           top: 10px;
           right: 10px;
           padding: 6px 10px;
+        }
+      }
+
+      /* Focus styles for accessibility */
+      :focus-visible {
+        outline: 2px solid #0d6efd;
+        outline-offset: 2px;
+      }
+
+      /* Subtle entrance animations */
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .avatar,
+      h1,
+      p.subtitle,
+      .links li,
+      .footer {
+        animation: fadeInUp 0.45s ease both;
+      }
+
+      .links li:nth-child(1) {
+        animation-delay: 0.05s;
+      }
+      .links li:nth-child(2) {
+        animation-delay: 0.1s;
+      }
+      .links li:nth-child(3) {
+        animation-delay: 0.15s;
+      }
+
+      /* Respect reduced motion preferences */
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          animation: none !important;
+          transition: none !important;
         }
       }
     </style>
@@ -204,7 +324,13 @@
     <canvas id="hexagon-canvas"></canvas>
 
     <div class="container">
-      <button class="theme-toggle-button" id="themeToggle">Toggle Theme</button>
+      <button class="theme-toggle-button" id="themeToggle" aria-label="Toggle color theme" title="Toggle theme">
+        🌙 <span class="toggle-label">Dark</span>
+      </button>
+
+      <div class="avatar" aria-hidden="true">
+        <img src="./images/lifeadventurer.jpg" alt="" />
+      </div>
 
       <h1>Life Adventurer</h1>
 
@@ -218,12 +344,39 @@
             href="https://sharacle.com"
             target="_blank"
             rel="noopener noreferrer"
-            >Sharacle</a
+            aria-label="Open Sharacle in a new tab"
           >
+            <span class="link-left">
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+              </svg>
+              <span class="link-text">Sharacle</span>
+            </span>
+            <svg class="link-arrow" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M7 17L17 7"></path>
+              <path d="M7 7h10v10"></path>
+            </svg>
+          </a>
         </li>
 
         <li>
-          <a href="/wiki/" target="_blank" rel="noopener noreferrer">My Wiki</a>
+          <a href="/wiki/" target="_blank" rel="noopener noreferrer" aria-label="Open My Wiki in a new tab">
+            <span class="link-left">
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                <path d="M20 22H6.5a2.5 2.5 0 1 1 0-5H20v5z"></path>
+                <path d="M4 4v15"></path>
+                <path d="M20 4v9"></path>
+                <path d="M8 4h8"></path>
+              </svg>
+              <span class="link-text">My Wiki</span>
+            </span>
+            <svg class="link-arrow" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M7 17L17 7"></path>
+              <path d="M7 7h10v10"></path>
+            </svg>
+          </a>
         </li>
 
         <li>
@@ -231,8 +384,19 @@
             href="https://github.com/LifeAdventurer"
             target="_blank"
             rel="noopener noreferrer"
-            >GitHub Profile</a
+            aria-label="Open GitHub Profile in a new tab"
           >
+            <span class="link-left">
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.58 2 12.26c0 4.5 2.87 8.31 6.84 9.66.5.09.68-.22.68-.49 0-.24-.01-.88-.01-1.72-2.78.62-3.37-1.37-3.37-1.37-.46-1.19-1.12-1.51-1.12-1.51-.92-.64.07-.63.07-.63 1.02.07 1.55 1.07 1.55 1.07.9 1.58 2.36 1.12 2.94.85.09-.67.35-1.12.63-1.38-2.22-.26-4.56-1.15-4.56-5.11 0-1.13.39-2.06 1.03-2.79-.1-.26-.45-1.3.1-2.72 0 0 .84-.27 2.75 1.06A9.32 9.32 0 0 1 12 6.83c.85 0 1.71.12 2.51.35 1.9-1.33 2.74-1.06 2.74-1.06.55 1.42.2 2.46.1 2.72.64.73 1.03 1.66 1.03 2.79 0 3.97-2.34 4.84-4.57 5.1.36.32.67.95.67 1.92 0 1.39-.01 2.51-.01 2.85 0 .27.18.58.69.48A10.04 10.04 0 0 0 22 12.26C22 6.58 17.52 2 12 2Z"></path>
+              </svg>
+              <span class="link-text">GitHub Profile</span>
+            </span>
+            <svg class="link-arrow" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M7 17L17 7"></path>
+              <path d="M7 7h10v10"></path>
+            </svg>
+          </a>
         </li>
       </ul>
 
@@ -253,14 +417,17 @@
       const prefersDarkScheme = window.matchMedia(
         "(prefers-color-scheme: dark)",
       );
+      const prefersReducedMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      );
 
       function applyTheme(theme) {
         if (theme === "dark") {
           body.classList.add("dark-mode");
-          themeToggle.textContent = "☀️ Light";
+          themeToggle.innerHTML = "☀️ <span class=\"toggle-label\">Light</span>";
         } else {
           body.classList.remove("dark-mode");
-          themeToggle.textContent = "🌙 Dark";
+          themeToggle.innerHTML = "🌙 <span class=\"toggle-label\">Dark</span>";
         }
         if (
           window.hexagonApp &&
@@ -304,6 +471,10 @@
 
         let hexagons = [];
         let lastHoveredHex = null; // Track the previously hovered hexagon
+
+        // Animation control respecting reduced motion
+        let animationEnabled = !prefersReducedMotion.matches;
+        let animationFrameId = null;
 
         // Theme-dependent colors
         let baseHexColor = "#e0e0e0"; // Light mode default
@@ -443,6 +614,13 @@
             } else {
               this.targetColorRgb = this.baseColorRgb;
             }
+
+            // If reduced motion is requested, jump colors immediately
+            if (prefersReducedMotion.matches) {
+              this.animationProgress = isHovered ? 1 : 0;
+              const rgb = isHovered ? this.hoverColorRgb : this.baseColorRgb;
+              this.color = `rgb(${rgb.r},${rgb.g},${rgb.b})`;
+            }
           }
         }
 
@@ -541,7 +719,29 @@
             hex.draw();
           });
 
-          requestAnimationFrame(animate);
+          animationFrameId = requestAnimationFrame(animate);
+        }
+
+        function drawOnce() {
+          ctx.clearRect(0, 0, width, height);
+          hexagons.forEach((hex) => {
+            hex.draw();
+          });
+        }
+
+        function startAnimation() {
+          if (animationFrameId !== null) return;
+          animationEnabled = true;
+          animationFrameId = requestAnimationFrame(animate);
+        }
+
+        function stopAnimation() {
+          if (animationFrameId !== null) {
+            cancelAnimationFrame(animationFrameId);
+            animationFrameId = null;
+          }
+          animationEnabled = false;
+          drawOnce();
         }
 
         window.addEventListener("resize", resizeCanvas);
@@ -567,12 +767,29 @@
           (prefersDarkScheme.matches ? "dark" : "light");
         resizeCanvas(); // This calls initHexagons and sets initial colors and centers virtual mouse
         updateThemeColors(initialTheme); // Ensure colors are set immediately after init
-        animate(); // Start the animation loop immediately
+        if (animationEnabled) {
+          startAnimation();
+        } else {
+          drawOnce();
+        }
 
         return {
           updateTheme: updateThemeColors, // Expose function to update theme colors
+          start: startAnimation,
+          stop: stopAnimation,
         };
       })();
+
+      // React to reduced motion preference changes
+      prefersReducedMotion.addEventListener("change", (e) => {
+        const reduce = e.matches;
+        if (!window.hexagonApp) return;
+        if (reduce) {
+          window.hexagonApp.stop();
+        } else {
+          window.hexagonApp.start();
+        }
+      });
     </script>
   </body>
 </html>
